@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VPN/SCANNER v8</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;700;800&display=swap');
+:root{--bg:#0a0a0f;--s1:#111118;--s2:#16161f;--border:#1e1e2e;--border2:#2a2a3e;--accent:#00ff88;--purple:#aa88ff;--hot:#ff3366;--warm:#ffaa00;--cool:#00aaff;--gold:#ffd700;--text:#e0e0f0;--dim:#6b6b8a;--dim2:#4a4a6a;}
+*{margin:0;padding:0;box-sizing:border-box;}html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column;font-size:13px;}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0;gap:10px;flex-wrap:wrap;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:var(--accent);letter-spacing:-0.5px;}
+.logo span{color:var(--dim);font-weight:400;}
+.hdr-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.live{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--dim);}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+.hdr-btn{font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border2);background:transparent;color:var(--dim);cursor:pointer;font-family:'JetBrains Mono',monospace;}
+.hdr-btn:hover{color:var(--accent);border-color:var(--accent);}
+.profile-sel{font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border2);background:var(--s2);color:var(--text);font-family:'JetBrains Mono',monospace;cursor:pointer;}
+.persona-bar{display:flex;align-items:center;gap:10px;padding:6px 16px;background:var(--s2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+.persona-tag{font-size:9px;padding:2px 6px;border-radius:3px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
+.tag-expert{background:rgba(0,255,136,0.1);border:1px solid var(--accent);color:var(--accent);}
+.tag-contra{background:rgba(255,51,102,0.1);border:1px solid var(--hot);color:var(--hot);}
+.tag-newbie{background:rgba(0,170,255,0.1);border:1px solid var(--cool);color:var(--cool);}
+.tag-vet{background:rgba(255,215,0,0.1);border:1px solid var(--gold);color:var(--gold);}
+.persona-role{font-size:10px;color:var(--dim);font-style:italic;}
+.persona-goal{margin-left:auto;font-size:10px;color:var(--dim);}
+.persona-karma{font-size:10px;color:var(--dim);}
+.stats{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--s2);}
+.stat{flex:1;padding:6px 10px;text-align:center;border-right:1px solid var(--border);}
+.stat:last-child{border-right:none;}
+.stat-n{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;line-height:1.1;}
+.stat-l{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:0.8px;margin-top:1px;}
+.goal-stat{flex:2;display:flex;flex-direction:column;justify-content:center;padding:5px 12px;border-right:1px solid var(--border);}
+.goal-row{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--dim);}
+.goal-bar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.goal-fill{height:100%;background:var(--accent);border-radius:2px;transition:width 0.5s;}
+.goal-txt{font-weight:700;color:var(--accent);min-width:28px;text-align:right;font-size:10px;}
+.tabs{display:flex;background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0;}
+.tab{padding:7px 14px;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;border:none;background:transparent;color:var(--dim);border-bottom:2px solid transparent;transition:all 0.15s;}
+.tab:hover{color:var(--text);}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent);}
+.ctrl{padding:7px 16px;display:flex;gap:5px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--border);background:var(--s2);flex-shrink:0;}
+.sb{padding:3px 8px;border:1px solid var(--border);background:transparent;color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;border-radius:20px;transition:all 0.15s;white-space:nowrap;}
+.sb:hover{border-color:var(--accent);color:var(--accent);}
+.sb.on{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:700;}
+.cr{margin-left:auto;display:flex;gap:5px;align-items:center;}
+select{background:var(--s1);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 6px;border-radius:4px;cursor:pointer;}
+.scan-btn{padding:4px 12px;background:var(--accent);color:var(--bg);border:none;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;cursor:pointer;border-radius:4px;}
+.scan-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.cnt{font-size:10px;color:var(--dim);}
+.content{flex:1;overflow:hidden;position:relative;}
+.pane{display:none;height:100%;overflow-y:auto;padding-bottom:20px;}
+.pane.on{display:block;}
+.feed{padding:10px 16px;display:flex;flex-direction:column;gap:7px;}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:start;animation:si 0.2s ease;}
+@keyframes si{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.card.gold-window{border-color:var(--gold);background:rgba(255,215,0,0.02);}
+.card.warn{border-color:rgba(255,170,0,0.3);}
+.score-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.ring{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;border:2px solid;}
+.r-hot{background:rgba(255,51,102,0.1);border-color:var(--hot);color:var(--hot);}
+.r-warm{background:rgba(255,170,0,0.1);border-color:var(--warm);color:var(--warm);}
+.r-cool{background:rgba(0,170,255,0.1);border-color:var(--cool);color:var(--cool);}
+.r-gold{background:rgba(255,215,0,0.15);border-color:var(--gold);color:var(--gold);}
+.score-lbl{font-size:8px;color:var(--dim);text-transform:uppercase;}
+.post-top{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--dim);margin-bottom:3px;flex-wrap:wrap;}
+.sub-lbl{color:var(--accent);}
+.tier{font-size:9px;padding:1px 4px;border-radius:3px;background:rgba(0,255,136,0.07);color:var(--dim);}
+.badge-new{font-size:8px;padding:1px 4px;border-radius:3px;background:var(--hot);color:white;font-weight:700;}
+.badge-gold{font-size:8px;padding:1px 4px;border-radius:3px;background:var(--gold);color:#000;font-weight:700;}
+.badge-warn{font-size:8px;padding:1px 5px;border-radius:3px;background:rgba(255,170,0,0.12);border:1px solid var(--warm);color:var(--warm);}
+.post-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3;text-decoration:none;display:block;}
+.post-title:hover{color:var(--accent);}
+.post-meta{display:flex;gap:10px;font-size:10px;color:var(--dim);flex-wrap:wrap;}
+.c-low{color:var(--accent);font-weight:600;}
+.c-mid{color:var(--warm);font-weight:600;}
+.rules-alert{grid-column:1/-1;background:rgba(255,170,0,0.04);border:1px solid rgba(255,170,0,0.2);border-radius:6px;padding:7px 10px;margin-top:4px;font-size:10px;color:var(--warm);line-height:1.6;}
+.sug-panel{grid-column:1/-1;background:rgba(170,136,255,0.04);border:1px solid rgba(170,136,255,0.15);border-radius:6px;padding:10px 12px;margin-top:4px;display:none;}
+.sug-panel.on{display:block;}
+.sug-lbl{font-size:9px;color:var(--purple);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;}
+.sug-txt{font-size:11px;color:var(--text);line-height:1.75;white-space:pre-wrap;background:var(--s2);padding:9px 11px;border-radius:4px;border:1px solid var(--border);}
+.sug-actions{margin-top:7px;display:flex;gap:6px;}
+.sug-warn{font-size:10px;color:var(--hot);background:rgba(255,51,102,0.07);border:1px solid rgba(255,51,102,0.2);border-radius:4px;padding:5px 8px;margin-top:6px;}
+.actions{display:flex;flex-direction:column;gap:4px;min-width:88px;}
+.ab{font-size:10px;font-weight:600;padding:4px 8px;border-radius:4px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);text-align:center;width:100%;transition:all 0.15s;font-family:'JetBrains Mono',monospace;}
+.ab-primary{background:var(--accent);color:var(--bg);border-color:var(--accent);}
+.ab-primary:hover{opacity:0.85;}
+.ab-purple{background:rgba(170,136,255,0.1);border-color:var(--purple);color:var(--purple);}
+.ab-green{background:rgba(0,255,136,0.07);border-color:var(--accent);color:var(--accent);}
+.ab-red{border-color:var(--dim2);color:var(--dim);}
+.ab-red:hover{border-color:var(--hot);color:var(--hot);}
+.copy-btn{font-size:10px;font-weight:600;padding:4px 10px;border-radius:4px;cursor:pointer;border:none;background:var(--purple);color:var(--bg);font-family:'JetBrains Mono',monospace;}
+.regen-btn{font-size:10px;padding:4px 10px;border-radius:4px;cursor:pointer;background:transparent;border:1px solid var(--purple);color:var(--purple);font-family:'JetBrains Mono',monospace;}
+.replies-wrap{padding:14px 16px;display:flex;flex-direction:column;gap:12px;height:100%;overflow-y:auto;}
+.reply-composer{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px;}
+.rc-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--accent);}
+.rc-field{display:flex;flex-direction:column;gap:4px;}
+.rc-label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:0.6px;}
+.rc-opt{font-size:9px;color:var(--dim2);text-transform:none;font-style:italic;}
+.rc-textarea{width:100%;font-size:11px;padding:7px 10px;border-radius:4px;border:1px solid var(--border);background:var(--s2);color:var(--text);font-family:'JetBrains Mono',monospace;resize:vertical;line-height:1.5;}
+.rc-input{width:100%;font-size:11px;padding:7px 10px;border-radius:4px;border:1px solid var(--border);background:var(--s2);color:var(--text);font-family:'JetBrains Mono',monospace;}
+.rc-select{width:100%;font-size:11px;padding:7px 10px;border-radius:4px;border:1px solid var(--border);background:var(--s2);color:var(--text);font-family:'JetBrains Mono',monospace;cursor:pointer;}
+.rc-textarea:focus,.rc-input:focus,.rc-select:focus{outline:none;border-color:var(--accent);}
+.rc-result{background:var(--s1);border:1px solid var(--border2);border-radius:8px;padding:14px;}
+.rc-result-label{font-size:9px;color:var(--purple);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;}
+.rc-result-txt{font-size:11px;color:var(--text);line-height:1.75;white-space:pre-wrap;background:var(--s2);padding:10px 12px;border-radius:6px;border:1px solid var(--border);margin-bottom:8px;min-height:40px;}
+.rc-result-actions{display:flex;gap:6px;align-items:center;}
+.hist-list{padding:10px 16px;display:flex;flex-direction:column;gap:7px;}
+.hist-card{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.hist-title{font-size:12px;font-weight:600;margin-bottom:3px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hist-meta{font-size:10px;color:var(--dim);display:flex;gap:8px;flex-wrap:wrap;}
+.done-badge{font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(0,255,136,0.08);border:1px solid var(--accent);color:var(--accent);white-space:nowrap;}
+.karma-dash{padding:12px 16px;}
+.k-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
+.k-card{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;}
+.k-num{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--accent);line-height:1;}
+.k-lbl{font-size:10px;color:var(--dim);margin-top:3px;text-transform:uppercase;letter-spacing:0.5px;}
+.graph-section{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;}
+.graph-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.graph-title{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:0.8px;}
+.graph-toggle{display:flex;border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+.gt{font-size:10px;padding:3px 10px;cursor:pointer;border:none;background:transparent;color:var(--dim);font-family:'JetBrains Mono',monospace;}
+.gt.on{background:var(--accent);color:var(--bg);font-weight:700;}
+.graph-area{height:72px;display:flex;align-items:flex-end;gap:3px;}
+.g-day{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.g-bar{width:100%;border-radius:3px 3px 0 0;min-height:2px;transition:height 0.4s ease;}
+.g-bar.today{box-shadow:0 0 6px rgba(0,255,136,0.3);}
+.g-lbl{font-size:8px;color:var(--dim);}
+.g-val{font-size:8px;font-weight:700;}
+.goals{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;}
+.goal-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.goal-item:last-child{border-bottom:none;padding-bottom:0;}
+.goal-name{flex:1;}
+.mini-bar{width:60px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;flex-shrink:0;}
+.mini-fill{height:100%;background:var(--accent);border-radius:2px;}
+.goal-pct{font-size:10px;color:var(--dim);min-width:50px;text-align:right;}
+.k-update{display:flex;gap:8px;align-items:center;font-size:11px;color:var(--dim);}
+.k-inp{width:90px;font-size:11px;padding:5px 8px;border-radius:4px;border:1px solid var(--border);background:var(--s1);color:var(--text);font-family:'JetBrains Mono',monospace;}
+.k-btn{padding:5px 12px;background:var(--accent);color:var(--bg);border:none;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;border-radius:4px;cursor:pointer;}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;display:flex;align-items:center;justify-content:center;}
+.modal{background:var(--s1);border:1px solid var(--border2);border-radius:10px;padding:20px;min-width:300px;max-width:90vw;}
+.modal h3{font-family:'Syne',sans-serif;font-size:14px;margin-bottom:6px;color:var(--text);}
+.modal p{font-size:10px;color:var(--dim);margin-bottom:12px;line-height:1.6;}
+.modal input{width:100%;font-size:11px;padding:7px 10px;border-radius:4px;border:1px solid var(--border);background:var(--s2);color:var(--text);font-family:'JetBrains Mono',monospace;margin-bottom:10px;}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;}
+.modal-cancel{font-size:10px;padding:5px 12px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;font-family:'JetBrains Mono',monospace;}
+.modal-ok{font-size:10px;padding:5px 12px;border-radius:4px;border:none;background:var(--accent);color:var(--bg);cursor:pointer;font-family:'JetBrains Mono',monospace;font-weight:700;}
+.empty{text-align:center;padding:40px;color:var(--dim);font-size:12px;line-height:2;}
+.loading{text-align:center;padding:30px;color:var(--dim);font-size:11px;}
+.spin{animation:spin 1s linear infinite;display:inline-block;}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:16px;right:16px;background:var(--accent);color:var(--bg);padding:8px 14px;border-radius:6px;font-size:11px;font-weight:700;z-index:9998;animation:tin 0.3s ease;pointer-events:none;}
+@keyframes tin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ACTU TAB */
+.actu-wrap{padding:10px 16px;display:flex;flex-direction:column;gap:8px;height:100%;overflow-y:auto;}
+.actu-ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0;flex-shrink:0;}
+.actu-card{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;animation:si 0.2s ease;}
+.actu-card.fire{border-color:var(--hot);background:rgba(255,51,102,0.02);}
+.actu-card.hot{border-color:var(--warm);}
+.actu-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.actu-source{font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(170,136,255,0.1);border:1px solid rgba(170,136,255,0.3);color:var(--purple);}
+.actu-age{font-size:10px;color:var(--dim);}
+.buzz-score{font-size:9px;padding:2px 6px;border-radius:3px;font-weight:700;}
+.buzz-fire{background:rgba(255,51,102,0.15);border:1px solid var(--hot);color:var(--hot);}
+.buzz-hot{background:rgba(255,170,0,0.15);border:1px solid var(--warm);color:var(--warm);}
+.buzz-ok{background:rgba(0,170,255,0.1);border:1px solid var(--cool);color:var(--cool);}
+.actu-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);line-height:1.3;text-decoration:none;display:block;}
+.actu-title:hover{color:var(--accent);}
+.actu-summary{font-size:11px;color:var(--dim);line-height:1.6;}
+.actu-reco{background:rgba(0,255,136,0.04);border:1px solid rgba(0,255,136,0.15);border-radius:6px;padding:8px 10px;font-size:10px;color:var(--dim);line-height:1.7;}
+.actu-reco strong{color:var(--accent);}
+.actu-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.actu-draft{background:rgba(170,136,255,0.04);border:1px solid rgba(170,136,255,0.2);border-radius:6px;padding:10px 12px;display:none;}
+.actu-draft.on{display:block;}
+.actu-draft-lbl{font-size:9px;color:var(--purple);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;}
+.actu-draft-txt{font-size:11px;color:var(--text);line-height:1.75;white-space:pre-wrap;background:var(--s2);padding:9px 11px;border-radius:4px;border:1px solid var(--border);}
+.actu-draft-actions{margin-top:7px;display:flex;gap:6px;}
+.actu-search-hint{font-size:10px;color:var(--warm);margin-top:4px;}
+.actu-search-hint a{color:var(--accent);text-decoration:none;}
+.actu-search-hint a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">VPN/<span>SCANNER</span> <span style="font-size:10px;color:var(--dim)">v8</span></div>
+  <div class="hdr-right">
+    <select class="profile-sel" id="profile-sel" onchange="switchProfile(this.value)"></select>
+    <button class="hdr-btn" id="api-btn" onclick="showApiModal()">&#128273; API Key</button>
+    <div class="live"><div class="live-dot"></div><span id="last-scan">Not scanned</span></div>
+  </div>
+</div>
+
+<div class="persona-bar">
+  <div style="display:flex;align-items:center;gap:6px;">
+    <span class="persona-tag" id="persona-tag">EXPERT</span>
+    <span id="persona-name" style="font-size:11px;color:var(--text);font-weight:700"></span>
+    <span class="persona-role" id="persona-role"></span>
+  </div>
+  <span class="persona-karma" id="persona-karma-bar"></span>
+  <span class="persona-goal" id="persona-goal-bar"></span>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n" id="s-total">0</div><div class="stat-l">Posts</div></div>
+  <div class="stat"><div class="stat-n" id="s-gold" style="color:var(--gold)">0</div><div class="stat-l">Golden</div></div>
+  <div class="stat"><div class="stat-n" id="s-hot" style="color:var(--hot)">0</div><div class="stat-l">Hot</div></div>
+  <div class="stat"><div class="stat-n" id="s-low" style="color:var(--accent)">0</div><div class="stat-l">0-2 cmt</div></div>
+  <div class="goal-stat">
+    <div class="goal-row">
+      <span>Daily goal</span>
+      <div class="goal-bar"><div class="goal-fill" id="goal-fill" style="width:0%"></div></div>
+      <span class="goal-txt" id="goal-txt">0/10</span>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab on" onclick="showTab('scanner')">Scanner</button>
+  <button class="tab" onclick="showTab('replies')">&#128488; Replies</button>
+  <button class="tab" onclick="showTab('history')">History</button>
+  <button class="tab" onclick="showTab('karma')">Karma</button>
+  <button class="tab" onclick="showTab('actu')">&#128248; Actu</button>
+</div>
+
+<div class="content">
+
+<div id="pane-scanner" class="pane on">
+  <div class="ctrl" id="sub-ctrl">
+    <div class="cr">
+      <select id="sort-sel" onchange="renderPosts()">
+        <option value="opp">Best opportunity</option>
+        <option value="new">Newest first</option>
+        <option value="com">Fewest comments</option>
+      </select>
+      <select id="max-com" onchange="renderPosts()">
+        <option value="999">All</option>
+        <option value="5" selected>Max 5</option>
+        <option value="2">Max 2</option>
+        <option value="0">0 only</option>
+      </select>
+      <span class="cnt" id="cnt">0 posts</span>
+      <button class="scan-btn" id="scan-btn" onclick="loadAll()">Scan</button>
+    </div>
+  </div>
+  <div class="feed" id="feed"><div class="empty">Select a profile and click Scan.</div></div>
+</div>
+
+<div id="pane-replies" class="pane">
+  <div class="replies-wrap">
+    <div class="reply-composer">
+      <div class="rc-title">&#128488; Reply Generator</div>
+      <div class="rc-field">
+        <label class="rc-label">Subreddit</label>
+        <select id="rc-sub" class="rc-select"><option value="">-- select --</option></select>
+      </div>
+      <div class="rc-field">
+        <label class="rc-label">Your original comment <span class="rc-opt">(optional but helps)</span></label>
+        <textarea id="rc-my-comment" class="rc-textarea" rows="2" placeholder="What you posted..."></textarea>
+      </div>
+      <div class="rc-field">
+        <label class="rc-label">Their reply</label>
+        <textarea id="rc-their-reply" class="rc-textarea" rows="3" placeholder="Paste their comment here..."></textarea>
+      </div>
+      <div class="rc-field">
+        <label class="rc-label">Post title <span class="rc-opt">(optional)</span></label>
+        <input type="text" id="rc-post-title" class="rc-input" placeholder="Original post title..." />
+      </div>
+      <button class="scan-btn" style="width:100%;padding:8px" onclick="generateReply()">&#9889; Generate reply</button>
+    </div>
+    <div class="rc-result" id="rc-result" style="display:none">
+      <div class="rc-result-label">AI reply — <span id="rc-result-persona"></span></div>
+      <div class="rc-result-txt" id="rc-result-txt"></div>
+      <div class="rc-result-actions">
+        <button class="copy-btn" onclick="copyGeneratedReply()">Copy</button>
+        <button class="regen-btn" style="margin-left:4px" onclick="generateReply()">Regen</button>
+        <button class="ab ab-red" style="width:auto;padding:3px 10px;margin-left:4px" onclick="clearReply()">Clear</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="pane-history" class="pane">
+  <div class="hist-list" id="hist-list"></div>
+</div>
+
+<div id="pane-karma" class="pane">
+  <div class="karma-dash">
+    <div class="k-grid">
+      <div class="k-card"><div class="k-num" id="k-karma">-</div><div class="k-lbl">Karma</div></div>
+      <div class="k-card"><div class="k-num" id="k-today">0</div><div class="k-lbl">Today</div></div>
+      <div class="k-card"><div class="k-num" id="k-total">0</div><div class="k-lbl">Total logged</div></div>
+    </div>
+    <div class="graph-section">
+      <div class="graph-hdr">
+        <span class="graph-title">Last 14 days</span>
+        <div class="graph-toggle">
+          <button class="gt on" id="gt-comments" onclick="switchGraph('comments')">Comments</button>
+          <button class="gt" id="gt-karma" onclick="switchGraph('karma')">Karma</button>
+        </div>
+      </div>
+      <div class="graph-area" id="graph-area"></div>
+    </div>
+    <div class="goals">
+      <div class="goal-item"><span class="goal-name">Comments per day</span><div class="mini-bar"><div class="mini-fill" id="g1f" style="width:0%"></div></div><span class="goal-pct" id="g1t">0/-</span></div>
+      <div class="goal-item"><span class="goal-name">Karma progress</span><div class="mini-bar"><div class="mini-fill" id="g2f" style="width:0%"></div></div><span class="goal-pct" id="g2t">-</span></div>
+      <div class="goal-item"><span class="goal-name">Subs covered today</span><div class="mini-bar"><div class="mini-fill" id="g3f" style="width:0%"></div></div><span class="goal-pct" id="g3t">0/5</span></div>
+    </div>
+    <div class="k-update">
+      <span>Update karma:</span>
+      <input class="k-inp" type="number" id="k-inp" placeholder="e.g. 850">
+      <button class="k-btn" onclick="updateKarma()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="pane-actu" class="pane">
+  <div class="actu-wrap">
+    <div class="actu-ctrl">
+      <button class="scan-btn" id="actu-btn" onclick="loadActu()">&#128248; Scan news</button>
+      <select id="actu-filter" onchange="renderActu()">
+        <option value="all">All topics</option>
+        <option value="censorship">Censorship/Freedom</option>
+        <option value="surveillance">Surveillance</option>
+        <option value="privacy">Privacy/Data</option>
+        <option value="geopolitics">Geopolitics</option>
+        <option value="cybersec">Cybersecurity</option>
+      </select>
+      <span id="actu-cnt" style="font-size:10px;color:var(--dim)"></span>
+    </div>
+    <div id="actu-feed"><div class="empty">Click "Scan news" to load latest articles.</div></div>
+  </div>
+</div>
+
+</div>
+
+<div class="modal-bg" id="api-modal" style="display:none">
+  <div class="modal">
+    <h3>Anthropic API Key</h3>
+    <p>Stored locally in your browser only.</p>
+    <input type="password" id="api-key-inp" placeholder="sk-ant-...">
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="hideApiModal()">Cancel</button>
+      <button class="modal-ok" onclick="saveApiKey()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PERSONAS={sudo_overcoffee:{label:'sudo_overcoffee',role:'Anti-bullshit Expert',tag:'EXPERT',tagClass:'tag-expert',karma:1400,dailyGoal:10,subs:['VPN','privacy','VPN_Question','torrents','cybersecurity','TOR','degoogle','vpnreviews','privacyguides','netsec','technology','todayilearned','mildlyinteresting','Futurology'],prompt:`You are sudo_overcoffee on Reddit. Role: anti-bullshit VPN expert.\nPERSONALITY: Tech guy tired of VPN marketing BS. Direct, sharp, never aggressive toward genuine questions.\nWRITING RULES:\n- Everything lowercase except ONE word in CAPS for emphasis\n- Missing apostrophes: thats, dont, its, youre, cant\n- Short sentences. Sometimes very short. One long one to drive the point.\n- Use naturally: lol, lmao, tbh, ngl, imo, fr\n- NEVER bullet points, NEVER headers\n- 2-4 sentences MAX\n- Mention Proton VPN only if genuinely relevant, never forced`},layer8problemz:{label:'layer8problemz',role:'Technical Contradicteur',tag:'SYSADMIN',tagClass:'tag-contra',karma:10,dailyGoal:4,subs:['VPN','netsec','cybersecurity','privacyguides','networking','sysadmin','homelab','linux','selfhosted','opensource'],prompt:`You are layer8problemz on Reddit. Role: sysadmin who challenges oversimplifications.\nPERSONALITY: Skeptical, precise, creates constructive tension, never condescending.\nWRITING RULES:\n- Normal capitalization\n- Use: but what about..., thats not the full picture, depends on your threat model\n- Technical but not arrogant\n- NEVER bullet points, NEVER headers\n- 2-4 sentences MAX\n- NEVER recommend any specific brand`},packet_lag:{label:'packet_lag',role:'Curious Newbie',tag:'NEWBIE',tagClass:'tag-newbie',karma:1,dailyGoal:3,subs:['VPN','privacy','VPN_Question','vpnreviews','techsupport','NoStupidQuestions','explainlikeimfive','Assistance','firstworldproblems'],prompt:`You are packet_lag on Reddit. Role: genuine VPN newbie who is learning.\nPERSONALITY: Actually new to VPNs. Relatable, honest. Not performatively naive.\nWRITING RULES:\n- Normal capitalization, casual tone\n- Use: i might be wrong but, is it just me or, i just got my first vpn and\n- Natural uncertainty, zero jargon\n- NEVER bullet points, NEVER headers\n- 1-3 sentences MAX\n- NEVER recommend any specific brand`},victor7891:{label:'victor7891',role:'The Veteran',tag:'VETERAN',tagClass:'tag-vet',karma:5,dailyGoal:1,subs:['VPN','privacy','technology','worldnews','geopolitics'],prompt:`You are victor7891 on Reddit. Role: quiet veteran, posts rarely, carries weight.\nPERSONALITY: Discreet, measured, never rushed. Closes debates.\nWRITING RULES:\n- Correct capitalization and punctuation\n- Use: from what ive seen over the years, this tracks with, worth noting that\n- NEVER bullet points, NEVER headers\n- 2-3 sentences MAX\n- NEVER mention any brand whatsoever`}};
+
+const SUB_RULES={VPN:{tier:'T1',label:'r/VPN',noBrand:true,noAffiliate:true,rules:['No VPN brand names','No provider recommendations','No affiliate links'],extra:'STRICT: No VPN provider names. Vendor-neutral only.'},privacy:{tier:'T1',label:'r/privacy',noBrand:true,noAffiliate:true,rules:['No specific VPN discussion','No self-promotion'],extra:'No VPN providers. Privacy concepts only.'},VPN_Question:{tier:'T2',label:'r/VPN_Question',noBrand:false,noAffiliate:true,rules:['Be respectful','No ads'],extra:'Can name providers when helpful.'},torrents:{tier:'T3',label:'r/torrents',noBrand:false,noAffiliate:false,rules:['Must relate to torrenting'],extra:'Torrenting VPN advice.'},cybersecurity:{tier:'T2',label:'r/cybersecurity',noBrand:false,noAffiliate:true,aiWarning:true,rules:['AI FORBIDDEN - rewrite manually','Relevant to professionals'],extra:'For cybersecurity pros. MUST rewrite before posting.'},TOR:{tier:'T2',label:'r/TOR',noBrand:false,noAffiliate:false,rules:['Tor-specific only'],extra:'Tor topics only.'},degoogle:{tier:'T2',label:'r/degoogle',noBrand:false,noAffiliate:true,aiWarning:true,rules:['Disclose AI','No affiliate links','Prefer FOSS'],extra:'Favor open-source.'},vpnreviews:{tier:'T2',label:'r/vpnreviews',noBrand:false,noAffiliate:true,rules:['First-hand review only','No affiliate'],extra:'Personal experience only.'},privacyguides:{tier:'T1',label:'r/privacyguides',noBrand:false,noAffiliate:true,rules:['Evidence-based','No affiliate'],extra:'Precise and evidence-based.'},netsec:{tier:'T1',label:'r/netsec',noBrand:false,noAffiliate:true,rules:['Technical only','No marketing'],extra:'Highly technical.'},networking:{tier:'T2',label:'r/networking',noBrand:false,noAffiliate:true,rules:['Technical networking'],extra:'Technical networking.'},sysadmin:{tier:'T2',label:'r/sysadmin',noBrand:false,noAffiliate:false,rules:['Professional tone'],extra:'Sysadmin perspective.'},homelab:{tier:'T3',label:'r/homelab',noBrand:false,noAffiliate:false,rules:['Homelab relevant'],extra:'Home lab context.'},linux:{tier:'T2',label:'r/linux',noBrand:false,noAffiliate:false,rules:['Linux relevant'],extra:'Linux perspective.'},selfhosted:{tier:'T3',label:'r/selfhosted',noBrand:false,noAffiliate:false,rules:['Self-hosting relevant'],extra:'Self-hosted context.'},opensource:{tier:'T3',label:'r/opensource',noBrand:false,noAffiliate:false,rules:['Open source'],extra:'Open source.'},technology:{tier:'T3',label:'r/technology',noBrand:false,noAffiliate:false,rules:['Tech relevant'],extra:'General tech.'},todayilearned:{tier:'T3',label:'r/todayilearned',noBrand:false,noAffiliate:false,rules:['TIL format'],extra:'Informative.'},mildlyinteresting:{tier:'T3',label:'r/mildlyinteresting',noBrand:false,noAffiliate:false,rules:['Mildly interesting'],extra:'Keep casual.'},Futurology:{tier:'T3',label:'r/Futurology',noBrand:false,noAffiliate:false,rules:['Future-focused'],extra:'Speculative.'},techsupport:{tier:'T3',label:'r/techsupport',noBrand:false,noAffiliate:false,rules:['Helpful'],extra:'Simple language.'},NoStupidQuestions:{tier:'T3',label:'r/NoStupidQuestions',noBrand:false,noAffiliate:false,rules:['Friendly'],extra:'Friendly, accessible.'},explainlikeimfive:{tier:'T3',label:'r/explainlikeimfive',noBrand:false,noAffiliate:false,rules:['ELI5'],extra:'Explain to beginner.'},Assistance:{tier:'T3',label:'r/Assistance',noBrand:false,noAffiliate:false,rules:['Helpful'],extra:'Supportive.'},firstworldproblems:{tier:'T3',label:'r/firstworldproblems',noBrand:false,noAffiliate:false,rules:['Casual'],extra:'Casual humor.'},worldnews:{tier:'T3',label:'r/worldnews',noBrand:false,noAffiliate:false,rules:['News relevant'],extra:'Factual.'},geopolitics:{tier:'T3',label:'r/geopolitics',noBrand:false,noAffiliate:false,rules:['Geopolitics'],extra:'Measured.'}};
+
+function gs(k,d){try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):d;}catch{return d;}}
+function ss(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function ago(ts){const s=Math.floor(Date.now()/1000-ts);if(s<60)return s+'s';if(s<3600)return Math.floor(s/60)+'m';if(s<86400)return Math.floor(s/3600)+'h';return Math.floor(s/86400)+'d';}
+function toast(msg){const t=document.createElement('div');t.className='toast';t.innerHTML=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
+
+function calcScore(p){let s=80;const am=(Date.now()-p.created*1000)/60000,ah=am/60;if(am<15)s+=80;else if(am<30)s+=60;else if(am<60)s+=45;else if(ah<2)s+=30;else if(ah<6)s+=15;else if(ah<12)s+=5;else s-=Math.min(50,ah*1.5);if(p.num_comments===0)s+=70;else if(p.num_comments===1)s+=50;else if(p.num_comments<=3)s+=35;else if(p.num_comments<=5)s+=20;else if(p.num_comments<=10)s+=5;else s-=Math.min(40,p.num_comments*2);if(p.score>0&&ah<2)s+=Math.min(40,p.score*3);else if(p.score>10)s+=20;else if(p.score>50)s+=35;const t=(p.title||'').toLowerCase();if(t.includes('?')||t.startsWith('how')||t.startsWith('what')||t.startsWith('why')||t.startsWith('is ')||t.startsWith('can '))s+=20;const tier=(SUB_RULES[p.subreddit]||{}).tier;if(tier==='T1')s+=15;else if(tier==='T2')s+=8;return Math.max(0,Math.round(s));}
+function isGolden(p){return(Date.now()/1000-p.created)<1800&&p.num_comments<=2;}
+function scoreClass(s){if(s>=200)return'r-gold';if(s>=150)return'r-hot';if(s>=100)return'r-warm';return'r-cool';}
+
+const DEF={sudo_overcoffee:{karma:1400,karmaHistory:{},commentHistory:[]},layer8problemz:{karma:10,karmaHistory:{},commentHistory:[]},packet_lag:{karma:1,karmaHistory:{},commentHistory:[]},victor7891:{karma:5,karmaHistory:{},commentHistory:[]}};
+let profiles=gs('vp7_profiles',DEF);
+Object.keys(DEF).forEach(k=>{if(!profiles[k])profiles[k]=DEF[k];});
+let cur=gs('vp7_current','sudo_overcoffee');
+if(!profiles[cur])cur='sudo_overcoffee';
+function getP(){return profiles[cur];}
+function getPersona(){return PERSONAS[cur]||PERSONAS.sudo_overcoffee;}
+function saveProfiles(){ss('vp7_profiles',profiles);ss('vp7_current',cur);}
+const today=new Date().toDateString();
+let todayCount=gs('td7_'+cur+'_'+today,0);
+function saveTodayCount(){ss('td7_'+cur+'_'+today,todayCount);}
+
+function renderProfileSel(){document.getElementById('profile-sel').innerHTML=Object.keys(PERSONAS).map(p=>`<option value="${p}" ${p===cur?'selected':''}>u/${p}</option>`).join('');}
+
+function switchProfile(name){cur=name;saveProfiles();todayCount=gs('td7_'+name+'_'+today,0);posts=[];skipped=new Set();suggestions={};renderSubCtrl();updatePersonaBar();updateGoal();updateKarmaCards();renderGraph();renderGoals();populateSubSelect();document.getElementById('feed').innerHTML=`<div class="empty">Click Scan to load posts for u/${name}.</div>`;document.getElementById('cnt').textContent='0 posts';['s-total','s-gold','s-hot','s-low'].forEach(id=>document.getElementById(id).textContent='0');}
+
+function updatePersonaBar(){const p=getPersona();document.getElementById('persona-name').textContent='u/'+p.label;document.getElementById('persona-role').textContent=p.role;const tag=document.getElementById('persona-tag');tag.textContent=p.tag;tag.className='persona-tag '+p.tagClass;document.getElementById('persona-karma-bar').textContent='karma: '+(getP().karma||p.karma);document.getElementById('persona-goal-bar').textContent='goal: '+todayCount+'/'+p.dailyGoal+' today';}
+
+function showTab(t){['scanner','replies','history','karma','actu'].forEach(x=>{const el=document.getElementById('pane-'+x);if(el)el.classList.toggle('on',x===t);});document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('on',['scanner','replies','history','karma','actu'][i]===t));if(t==='history')renderHistory();if(t==='karma'){updateKarmaCards();renderGraph();renderGoals();}if(t==='replies')populateSubSelect();if(t==='actu'&&!actuLoaded)loadActu();}
+
+function showApiModal(){document.getElementById('api-key-inp').value=localStorage.getItem('ant_key')||'';document.getElementById('api-modal').style.display='flex';setTimeout(()=>document.getElementById('api-key-inp').focus(),50);}
+function hideApiModal(){document.getElementById('api-modal').style.display='none';}
+function saveApiKey(){const k=document.getElementById('api-key-inp').value.trim();if(k){localStorage.setItem('ant_key',k);toast('API key saved');}else{localStorage.removeItem('ant_key');toast('Key removed');}hideApiModal();updateApiBtn();}
+function updateApiBtn(){const b=document.getElementById('api-btn');if(localStorage.getItem('ant_key')){b.textContent='&#128273; Key OK';b.style.color='var(--accent)';}else{b.textContent='&#128273; API Key';b.style.color='';}}
+document.getElementById('api-key-inp').addEventListener('keydown',e=>{if(e.key==='Enter')saveApiKey();if(e.key==='Escape')hideApiModal();});
+
+let posts=[],activeSubs=new Set(),skipped=new Set(),suggestions={};
+
+function renderSubCtrl(){const persona=getPersona();const ctrl=document.getElementById('sub-ctrl');const cr=ctrl.querySelector('.cr');ctrl.querySelectorAll('.sb').forEach(b=>b.remove());activeSubs=new Set(persona.subs);const ab=document.createElement('button');ab.className='sb on';ab.dataset.sub='all';ab.textContent='All';ctrl.insertBefore(ab,cr);persona.subs.forEach(sub=>{const btn=document.createElement('button');btn.className='sb on';btn.dataset.sub=sub;btn.textContent='r/'+sub;ctrl.insertBefore(btn,cr);});ctrl.querySelectorAll('.sb[data-sub]').forEach(btn=>{btn.addEventListener('click',()=>{const sub=btn.dataset.sub;if(sub==='all'){const allOn=activeSubs.size===persona.subs.length;if(allOn){activeSubs.clear();ctrl.querySelectorAll('.sb[data-sub]').forEach(b=>b.classList.remove('on'));}else{persona.subs.forEach(s=>activeSubs.add(s));ctrl.querySelectorAll('.sb[data-sub]').forEach(b=>b.classList.add('on'));}}else{if(activeSubs.has(sub)){activeSubs.delete(sub);btn.classList.remove('on');}else{activeSubs.add(sub);btn.classList.add('on');}}renderPosts();});});}
+
+async function fetchSub(sub){const url=`https://www.reddit.com/r/${sub}/new.json?limit=25&raw_json=1`;try{const r=await fetch(url,{headers:{'Accept':'application/json'},signal:AbortSignal.timeout(8000)});if(r.ok){const d=await r.json();if(d.data&&d.data.children)return d.data.children.map(c=>({...c.data,subreddit:sub}));}else{console.warn('Reddit',sub,r.status);}}catch(e){console.warn('fetchSub',sub,e.message);}return[];}
+
+async function loadAll(){const persona=getPersona();const btn=document.getElementById('scan-btn');btn.disabled=true;btn.textContent='...';document.getElementById('feed').innerHTML=`<div class="loading"><span class="spin">&#8635;</span> Scanning ${persona.subs.length} subs...</div>`;const results=await Promise.all(persona.subs.map(fetchSub));posts=results.flat();const seen=new Set();posts=posts.filter(p=>{if(seen.has(p.id))return false;seen.add(p.id);return true;});document.getElementById('last-scan').textContent='Scanned '+new Date().toLocaleTimeString();btn.disabled=false;btn.textContent='Scan';updateStats();renderPosts();}
+
+function updateStats(){document.getElementById('s-total').textContent=posts.length;document.getElementById('s-gold').textContent=posts.filter(p=>isGolden(p)).length;document.getElementById('s-hot').textContent=posts.filter(p=>calcScore(p)>=150).length;document.getElementById('s-low').textContent=posts.filter(p=>p.num_comments<=2).length;}
+
+function renderPosts(){const sort=document.getElementById('sort-sel').value;const maxC=parseInt(document.getElementById('max-com').value);let f=posts.filter(p=>activeSubs.has(p.subreddit)&&!skipped.has(p.id)&&p.num_comments<=maxC);if(sort==='opp')f.sort((a,b)=>calcScore(b)-calcScore(a));else if(sort==='new')f.sort((a,b)=>b.created-a.created);else f.sort((a,b)=>a.num_comments-b.num_comments);document.getElementById('cnt').textContent=f.length+' posts';const feed=document.getElementById('feed');if(!f.length&&!posts.length){feed.innerHTML='<div class="empty">Click Scan to load posts.</div>';return;}if(!f.length){feed.innerHTML='<div class="empty">No posts match filters.</div>';return;}window._pm={};f.forEach(p=>{window._pm[p.id.replace(/[^a-z0-9]/gi,'')]=p;});feed.innerHTML=f.map(p=>{const s=calcScore(p);const sr=SUB_RULES[p.subreddit]||{tier:'T3',label:'r/'+p.subreddit,rules:[],extra:''};const isGold=isGolden(p),isNew=(Date.now()/1000-p.created)<3600;const cc=p.num_comments<=2?'c-low':p.num_comments<=5?'c-mid':'';const cardCls=isGold?'card gold-window':sr.aiWarning?'card warn':'card';const ringCls=isGold?'r-gold':scoreClass(s);const te=esc(p.title);const tid=p.id.replace(/[^a-z0-9]/gi,'');const badges=[];if(isGold)badges.push('<span class="badge-gold">GOLDEN</span>');if(isNew&&!isGold)badges.push('<span class="badge-new">new</span>');if(sr.aiWarning)badges.push('<span class="badge-warn">AI BANNED</span>');if(sr.noBrand)badges.push('<span class="badge-warn">no brands</span>');if(sr.noAffiliate)badges.push('<span class="badge-warn">no affil</span>');const rulesHtml=sr.rules&&sr.rules.length?`<div class="rules-alert"><strong>Rules for ${sr.label}:</strong> ${sr.rules.join(' · ')}</div>`:'';return `<div class="${cardCls}" id="card-${tid}"><div class="score-wrap"><div class="ring ${ringCls}">${s}</div><div class="score-lbl">score</div></div><div><div class="post-top"><span class="sub-lbl">${sr.label}</span><span class="tier">${sr.tier||'T3'}</span>${badges.join('')}<span style="margin-left:auto">${ago(p.created)} · u/${esc(p.author)}</span></div><a class="post-title" href="https://reddit.com${p.permalink}" target="_blank">${te}</a><div class="post-meta"><span>&#8679; ${p.score}pts</span><span class="${cc}">&#128172; ${p.num_comments}</span></div>${rulesHtml}<div class="sug-panel" id="sp-${tid}"><div class="sug-lbl">AI suggestion — ${esc(getPersona().label)}</div><div id="sc-${tid}"></div><div class="sug-actions" id="sa-${tid}" style="display:none"><button class="copy-btn" onclick="copySug('${tid}')">Copy</button><button class="regen-btn" style="margin-left:6px" onclick="genSug('${tid}')">Regen</button></div>${sr.aiWarning?'<div class="sug-warn">&#9888; AI content banned — rewrite manually.</div>':''}</div></div><div class="actions"><button class="ab ab-primary" onclick="window.open('https://reddit.com${p.permalink}','_blank')">Open &#8599;</button><button class="ab ab-purple" onclick="genSug('${tid}')">Suggest</button><button class="ab ab-green" onclick="markDone('${tid}')">&#10003; Done</button><button class="ab ab-red" onclick="skipPost('${tid}')">Skip</button></div></div>`;}).join('');}
+
+async function callAI(prompt){const apiKey=localStorage.getItem('ant_key');if(!apiKey)throw new Error('No API key');const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:250,messages:[{role:'user',content:prompt}]})});const d=await res.json();if(d.error)throw new Error(d.error.message);return d.content?.[0]?.text||'';}
+
+async function genSug(tid){const p=window._pm&&window._pm[tid];if(!p)return;const sr=SUB_RULES[p.subreddit]||{label:'r/'+p.subreddit,extra:''};const persona=getPersona();const panel=document.getElementById('sp-'+tid);const content=document.getElementById('sc-'+tid);const actions=document.getElementById('sa-'+tid);panel.classList.add('on');content.innerHTML='<div style="color:var(--dim);font-size:11px"><span class="spin">&#8635;</span> Generating...</div>';if(actions)actions.style.display='none';try{const text=await callAI(`${persona.prompt}
+
+Subreddit: ${sr.label}
+${sr.extra?'Sub rule: '+sr.extra:''}
+
+Post title: "${p.title}"
+
+Write a Reddit comment in character. Follow ALL writing rules. Write ONLY the comment text.`);suggestions[tid]=text;content.innerHTML='<div class="sug-txt">'+esc(text)+'</div>';if(actions)actions.style.display='flex';}catch(e){content.innerHTML='<div style="color:var(--hot);font-size:11px">Error: '+esc(e.message)+'</div>';}}
+
+function copySug(tid){const t=suggestions[tid];if(!t)return;navigator.clipboard.writeText(t).then(()=>toast('Copied!')).catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied!');});}
+
+function markDone(tid){const p=window._pm&&window._pm[tid];const card=document.getElementById('card-'+tid);if(card){card.style.opacity='0';card.style.transition='opacity 0.3s';setTimeout(()=>card.remove(),300);}skipped.add(tid);if(!p)return;const sr=SUB_RULES[p.subreddit]||{label:'r/'+p.subreddit};const prof=getP();prof.commentHistory=[{id:tid,title:p.title,sub:sr.label,ups:p.score,time:new Date().toISOString(),hasSug:!!suggestions[tid],subName:p.subreddit,persona:cur},...(prof.commentHistory||[])].slice(0,200);const dk=new Date().toISOString().split('T')[0];prof.karmaHistory=prof.karmaHistory||{};if(!prof.karmaHistory[dk])prof.karmaHistory[dk]={comments:0,karma:prof.karma||0};prof.karmaHistory[dk].comments++;todayCount++;saveTodayCount();saveProfiles();const goal=getPersona().dailyGoal;updateGoal();document.getElementById('k-today').textContent=todayCount;document.getElementById('k-total').textContent=(prof.commentHistory||[]).length;document.getElementById('persona-goal-bar').textContent='goal: '+todayCount+'/'+goal+' today';toast(todayCount>=goal?'&#127881; Goal reached! '+todayCount+'/'+goal:'&#10003; Logged! '+todayCount+'/'+goal);}
+
+function skipPost(tid){skipped.add(tid);const card=document.getElementById('card-'+tid);if(card){card.style.opacity='0';card.style.transition='opacity 0.3s';setTimeout(()=>card.remove(),300);}}
+
+function populateSubSelect(){const sel=document.getElementById('rc-sub');if(!sel)return;const persona=getPersona();sel.innerHTML='<option value="">-- select --</option>';persona.subs.forEach(s=>{const sr=SUB_RULES[s]||{label:'r/'+s};sel.innerHTML+=`<option value="${s}">${sr.label}</option>`;});}
+
+let generatedReply=null;
+async function generateReply(){const myComment=document.getElementById('rc-my-comment').value.trim();const theirReply=document.getElementById('rc-their-reply').value.trim();const postTitle=document.getElementById('rc-post-title').value.trim();const subVal=document.getElementById('rc-sub').value;if(!theirReply){toast('Paste their reply first');return;}const persona=getPersona();const sr=SUB_RULES[subVal]||{label:subVal?'r/'+subVal:'Reddit',extra:''};const result=document.getElementById('rc-result');const txt=document.getElementById('rc-result-txt');const lbl=document.getElementById('rc-result-persona');result.style.display='block';lbl.textContent='u/'+persona.label;txt.innerHTML='<span class="spin">&#8635;</span> Generating...';txt.style.color='var(--dim)';const prompt=`${persona.prompt}
+
+You are responding to a Reddit reply made to your comment.
+${postTitle?'Thread title: "'+postTitle+'"':''}
+Subreddit: ${sr.label}
+${sr.extra?'Sub rule: '+sr.extra:''}
+${myComment?'Your original comment: "'+myComment+'"':''}
+
+They replied: "${theirReply}"
+
+Write a short reply in character. Address what they said. Write ONLY the reply text.`;try{generatedReply=await callAI(prompt);txt.textContent=generatedReply;txt.style.color='var(--text)';}catch(e){txt.textContent='Error: '+e.message;txt.style.color='var(--hot)';}}
+
+function copyGeneratedReply(){if(!generatedReply)return;navigator.clipboard.writeText(generatedReply).then(()=>toast('Copied!')).catch(()=>{const ta=document.createElement('textarea');ta.value=generatedReply;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied!');});}
+function clearReply(){document.getElementById('rc-my-comment').value='';document.getElementById('rc-their-reply').value='';document.getElementById('rc-post-title').value='';document.getElementById('rc-sub').value='';document.getElementById('rc-result').style.display='none';generatedReply=null;}
+
+function renderHistory(){const p=getP();const list=document.getElementById('hist-list');const hist=p.commentHistory||[];if(!hist.length){list.innerHTML='<div class="empty">No comments logged yet for u/'+cur+'.</div>';return;}list.innerHTML=hist.map(e=>`<div class="hist-card"><div style="min-width:0;overflow:hidden;flex:1"><div class="hist-title">${esc(e.title)}</div><div class="hist-meta"><span>${esc(e.sub)}</span><span>${new Date(e.time).toLocaleDateString()} ${new Date(e.time).toLocaleTimeString()}</span>${e.hasSug?'<span style="color:var(--purple)">AI used</span>':''}</div></div><div class="done-badge">&#10003; Done</div></div>`).join('');}
+
+function updateKarma(){const v=parseInt(document.getElementById('k-inp').value);if(isNaN(v)||v<0)return;const p=getP();p.karma=v;const dk=new Date().toISOString().split('T')[0];p.karmaHistory=p.karmaHistory||{};if(!p.karmaHistory[dk])p.karmaHistory[dk]={comments:0,karma:v};else p.karmaHistory[dk].karma=v;saveProfiles();document.getElementById('k-karma').textContent=v;document.getElementById('persona-karma-bar').textContent='karma: '+v;updateGoal();renderGraph();renderGoals();toast('Karma updated!');}
+function updateKarmaCards(){const p=getP(),persona=getPersona();document.getElementById('k-karma').textContent=p.karma!==undefined?p.karma:persona.karma;document.getElementById('k-today').textContent=todayCount;document.getElementById('k-total').textContent=(p.commentHistory||[]).length;}
+
+let graphMode='comments';
+function switchGraph(mode){graphMode=mode;document.getElementById('gt-comments').classList.toggle('on',mode==='comments');document.getElementById('gt-karma').classList.toggle('on',mode==='karma');renderGraph();}
+function renderGraph(){const p=getP();const hist=p.karmaHistory||{};const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const key=d.toISOString().split('T')[0];const short=d.toLocaleDateString('en',{weekday:'short'}).slice(0,2);days.push({key,short,isToday:i===0,data:hist[key]||{comments:0,karma:p.karma||0}});}const vals=days.map(d=>graphMode==='comments'?d.data.comments:d.data.karma);const maxV=Math.max(...vals,1);const color=graphMode==='comments'?'var(--accent)':'var(--purple)';document.getElementById('graph-area').innerHTML=days.map((d,i)=>{const v=vals[i],h=Math.max(2,Math.round((v/maxV)*68));return`<div class="g-day"><div class="g-bar${d.isToday?' today':''}" style="height:${h}px;background:${color};opacity:${d.isToday?1:0.6}"></div><div class="g-lbl">${d.short}</div><div class="g-val" style="color:${color}">${v>0?(graphMode==='karma'&&v>999?Math.round(v/100)/10+'k':v):''}</div></div>`;}).join('');}
+function renderGoals(){const p=getP(),persona=getPersona();const goal=persona.dailyGoal;const g1=Math.min(100,Math.round((todayCount/goal)*100));document.getElementById('g1f').style.width=g1+'%';document.getElementById('g1t').textContent=todayCount+'/'+goal;const karma=p.karma!==undefined?p.karma:persona.karma;const karmaTarget=cur==='sudo_overcoffee'?2000:karma>500?karma*2:500;const g2=Math.min(100,Math.max(0,Math.round((karma/karmaTarget)*100)));document.getElementById('g2f').style.width=g2+'%';document.getElementById('g2t').textContent=karma+'/'+karmaTarget;const hist=p.commentHistory||[];const subsToday=new Set(hist.filter(e=>new Date(e.time).toDateString()===today).map(e=>e.subName)).size;const g3=Math.min(100,Math.round((subsToday/5)*100));document.getElementById('g3f').style.width=g3+'%';document.getElementById('g3t').textContent=subsToday+'/5';}
+function updateGoal(){const goal=getPersona().dailyGoal;const pct=Math.min(100,Math.round((todayCount/goal)*100));document.getElementById('goal-fill').style.width=pct+'%';document.getElementById('goal-txt').textContent=todayCount+'/'+goal;renderGoals();}
+
+
+// ===================== ACTU TAB =====================
+let actuArticles = [];
+let actuDrafts = {};
+let actuLoaded = false;
+
+const BUZZ_KEYWORDS = {
+  fire: ['ban','censored','censorship','surveillance state','mass surveillance','banned','shut down','crackdown','arrested','illegal','government tracking','spying','nsa','cia','gchq','five eyes','authoritarian','dictatorship','martial law','freedom of speech','first amendment','second amendment','tiktok ban','section 230','cbdc','digital id','social credit','china','russia','iran','north korea'],
+  hot: ['vpn','privacy','encryption','data breach','hack','leaked','backdoor','court order','subpoena','police access','fbi','metadata','isp','geo-block','restricted','firewall','great firewall','tor','anonymous','warrant','patriot act','fisa','gdpr','data law','internet shutdown'],
+  relevant: ['freedom','liberty','rights','civil liberties','protest','activist','journalist','whistleblower','free internet','open internet','net neutrality','tracking','location data','biometric','facial recognition','smart city','censorship']
+};
+
+const PERSONA_RECO = {
+  censorship: {persona:'sudo_overcoffee', subs:['privacy','degoogle','technology','Futurology'], angle:'tech angle on censorship — link to surveillance infrastructure'},
+  surveillance: {persona:'sudo_overcoffee', subs:['privacy','netsec','technology'], angle:'technical breakdown of what surveillance means for end users'},
+  privacy: {persona:'layer8problemz', subs:['privacyguides','privacy','netsec'], angle:'challenge the "i have nothing to hide" narrative with technical specifics'},
+  geopolitics: {persona:'victor7891', subs:['geopolitics','worldnews','technology'], angle:'measured historical context — this pattern has happened before'},
+  cybersec: {persona:'layer8problemz', subs:['cybersecurity','netsec','technology'], angle:'technical breakdown for professionals'}
+};
+
+function parseBuzzScore(title, desc) {
+  const text = (title + ' ' + (desc||'')).toLowerCase();
+  let score = 0;
+  BUZZ_KEYWORDS.fire.forEach(k => { if(text.includes(k)) score += 3; });
+  BUZZ_KEYWORDS.hot.forEach(k => { if(text.includes(k)) score += 2; });
+  BUZZ_KEYWORDS.relevant.forEach(k => { if(text.includes(k)) score += 1; });
+  const cat = score >= 8 ? 'fire' : score >= 4 ? 'hot' : 'ok';
+  return {score, cat};
+}
+
+function detectCategory(title, desc) {
+  const text = (title + ' ' + (desc||'')).toLowerCase();
+  if(['censored','ban','banned','free speech','first amendment','tiktok','section 230','deplatform'].some(k=>text.includes(k))) return 'censorship';
+  if(['surveillance','tracking','nsa','cia','gchq','metadata','fisa','patriot act','spying','facial recognition'].some(k=>text.includes(k))) return 'surveillance';
+  if(['china','russia','iran','authoritarian','geopolit','sanction','war','conflict','regime'].some(k=>text.includes(k))) return 'geopolitics';
+  if(['hack','malware','ransomware','vulnerability','exploit','breach'].some(k=>text.includes(k))) return 'cybersec';
+  return 'privacy';
+}
+
+async function loadActu() {
+  const btn = document.getElementById('actu-btn');
+  const feed = document.getElementById('actu-feed');
+  const apiKey = localStorage.getItem('ant_key');
+
+  if(!apiKey) {
+    feed.innerHTML = '<div class="empty">No API key — click &#128273; in the header first.</div>';
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = '...';
+  feed.innerHTML = '<div class="loading"><span class="spin">&#8635;</span> Searching latest news via AI...</div>';
+
+  const today = new Date().toISOString().split('T')[0];
+  const prompt = `Today is ${today}. Search news published TODAY or YESTERDAY about: censorship, surveillance, VPN ban, privacy law, civil liberties, internet restriction, data breach. Return 6 results as JSON array only:
+[{"title":"","url":"","source":"","summary":"","date":"","category":"censorship|surveillance|privacy|geopolitics|cybersec"}]`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1500,
+        tools: [{type: 'web_search_20250305', name: 'web_search'}],
+        messages: [{role: 'user', content: prompt}]
+      })
+    });
+
+    const d = await res.json();
+    if(d.error) { feed.innerHTML = '<div class="empty">API error: '+esc(d.error.message)+'</div>'; btn.disabled=false; btn.textContent='&#128248; Refresh'; return; }
+
+    // extract text from response (may have tool_use blocks)
+    let rawText = '';
+    if(d.content) {
+      for(const block of d.content) {
+        if(block.type === 'text') rawText += block.text;
+      }
+    }
+
+    // parse JSON from response
+    let articles = [];
+    try {
+      const match = rawText.match(/\[[\s\S]*\]/);
+      if(match) articles = JSON.parse(match[0]);
+    } catch(e) {
+      feed.innerHTML = '<div class="empty">Could not parse AI response. Try again.</div>';
+      btn.disabled=false; btn.textContent='&#128248; Refresh';
+      return;
+    }
+
+    // enrich with buzz score + filter articles older than 14 days
+    const cutoff = Date.now() - 14 * 24 * 3600 * 1000;
+    actuArticles = articles.map((a, i) => {
+      const ts = a.date ? new Date(a.date).getTime() : Date.now();
+      return {
+        ...a,
+        id: 'ai'+i+Date.now(),
+        buzz: parseBuzzScore(a.title, a.summary),
+        cat: a.category || detectCategory(a.title, a.summary),
+        ts: isNaN(ts) ? Date.now() : ts
+      };
+    }).filter(a => a.ts > cutoff).sort((a,b) => b.ts - a.ts);
+
+    actuLoaded = true;
+    btn.disabled = false; btn.textContent = '&#128248; Refresh';
+    renderActu();
+
+  } catch(e) {
+    feed.innerHTML = '<div class="empty">Network error: '+esc(e.message)+'</div>';
+    btn.disabled=false; btn.textContent='&#128248; Refresh';
+  }
+}
+
+function renderActu() {
+  const filter = document.getElementById('actu-filter').value;
+  let f = filter === 'all' ? actuArticles : actuArticles.filter(a => a.cat === filter);
+  document.getElementById('actu-cnt').textContent = f.length + ' articles';
+  const feed = document.getElementById('actu-feed');
+  if(!f.length && actuArticles.length === 0) { feed.innerHTML = '<div class="empty">Click "Scan news" to load latest articles.</div>'; return; }
+  if(!f.length) { feed.innerHTML = '<div class="empty">No articles for this filter.</div>'; return; }
+
+  feed.innerHTML = f.map(a => {
+    const reco = PERSONA_RECO[a.cat] || PERSONA_RECO.privacy;
+    const persona = PERSONAS[reco.persona] || PERSONAS.sudo_overcoffee;
+    const buzzLbl = a.buzz.cat === 'fire' ? '<span class="buzz-score buzz-fire">&#128293; FIRE</span>' : a.buzz.cat === 'hot' ? '<span class="buzz-score buzz-hot">&#128308; HOT</span>' : '<span class="buzz-score buzz-ok">&#128309; OK</span>';
+    const cardCls = a.buzz.cat === 'fire' ? 'actu-card fire' : a.buzz.cat === 'hot' ? 'actu-card hot' : 'actu-card';
+    const searchUrl = 'https://www.reddit.com/search/?q='+encodeURIComponent((a.title||'').slice(0,60))+'&sort=new&type=link';
+    const subLinks = reco.subs.map(s=>`<a href="https://www.reddit.com/r/${s}/search/?q=${encodeURIComponent((a.title||'').slice(0,50))}&sort=new" target="_blank" style="color:var(--accent)">r/${s}</a>`).join(' · ');
+
+    return `<div class="${cardCls}" id="ac-${a.id}">
+      <div class="actu-top">
+        <span class="actu-source">${esc(a.source||'')}</span>
+        ${buzzLbl}
+        <span class="actu-age">${esc(a.date||'')}</span>
+        <span style="margin-left:auto;font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(255,255,255,0.05);color:var(--dim)">${esc(a.cat||'')}</span>
+      </div>
+      <a class="actu-title" href="${esc(a.url||'#')}" target="_blank">${esc(a.title||'')}</a>
+      ${a.summary ? '<div class="actu-summary">'+esc(a.summary)+'</div>' : ''}
+      <div class="actu-reco">
+        <strong>Persona :</strong> u/${esc(persona.label)} &nbsp;·&nbsp; <strong>Angle :</strong> ${esc(reco.angle)}<br>
+        <strong>Subs :</strong> ${subLinks}<br>
+        <strong>Search Reddit :</strong> <a href="${searchUrl}" target="_blank" style="color:var(--accent)">Find threads &#8599;</a>
+      </div>
+      <div class="actu-actions">
+        <button class="ab ab-purple" style="width:auto;padding:3px 10px" onclick="genActuDraft('${a.id}')">&#9889; Generate comment</button>
+        <button class="ab ab-red" style="width:auto;padding:3px 10px" onclick="dismissActu('${a.id}')">Dismiss</button>
+      </div>
+      <div class="actu-draft" id="ad-${a.id}">
+        <div class="actu-draft-lbl">Draft — u/${esc(persona.label)}</div>
+        <div class="actu-draft-txt" id="adt-${a.id}"></div>
+        <div class="actu-draft-actions" id="ada-${a.id}" style="display:none">
+          <button class="copy-btn" onclick="copyActuDraft('${a.id}')">Copy</button>
+          <button class="regen-btn" style="margin-left:6px" onclick="genActuDraft('${a.id}')">Regen</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function genActuDraft(id) {
+  const article = actuArticles.find(a => a.id === id);
+  if(!article) return;
+  const draft = document.getElementById('ad-'+id);
+  const txt = document.getElementById('adt-'+id);
+  const actions = document.getElementById('ada-'+id);
+  draft.classList.add('on');
+  txt.innerHTML = '<span class="spin">&#8635;</span> Generating...';
+  txt.style.color = 'var(--dim)';
+  if(actions) actions.style.display = 'none';
+
+  const reco = PERSONA_RECO[article.cat] || PERSONA_RECO.privacy;
+  const persona = PERSONAS[reco.persona] || PERSONAS.sudo_overcoffee;
+  const sr = SUB_RULES[reco.subs[0]] || {label:'r/privacy', extra:''};
+
+  const prompt = `${persona.prompt}
+
+You are writing a Reddit comment about a recent news article.
+
+Article: "${article.title}"
+Source: ${article.source}
+Summary: "${article.summary}"
+Target subreddit: ${sr.label}
+Angle: ${reco.angle}
+
+The Reddit audience includes privacy-conscious users, tech professionals, libertarians, and Americans concerned about civil liberties and government overreach. Frame the comment so it resonates with concerns about freedom and surveillance — without being partisan. Any VPN angle must emerge NATURALLY, never sound like an ad.
+
+Write a Reddit comment in character. Be specific to this article. Write ONLY the comment text.`;
+
+  try {
+    const text = await callAI(prompt);
+    actuDrafts[id] = text;
+    txt.textContent = text;
+    txt.style.color = 'var(--text)';
+    if(actions) actions.style.display = 'flex';
+  } catch(e) {
+    txt.textContent = 'Error: ' + e.message;
+    txt.style.color = 'var(--hot)';
+  }
+}
+
+function copyActuDraft(id) {
+  const t = actuDrafts[id]; if(!t) return;
+  navigator.clipboard.writeText(t).then(()=>toast('Copied!')).catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied!');});
+}
+
+function dismissActu(id) {
+  const card = document.getElementById('ac-'+id);
+  if(card){card.style.opacity='0';card.style.transition='opacity 0.3s';setTimeout(()=>card.remove(),300);}
+  actuArticles = actuArticles.filter(a => a.id !== id);
+  document.getElementById('actu-cnt').textContent = actuArticles.filter(a => {
+    const f = document.getElementById('actu-filter').value;
+    return f === 'all' || a.cat === f;
+  }).length + ' articles';
+}
+
+
+renderProfileSel();renderSubCtrl();updatePersonaBar();updateApiBtn();updateGoal();updateKarmaCards();renderGraph();populateSubSelect();
+</script>
+</body>
+</html>
